@@ -22,31 +22,31 @@ INSERT INTO subproject_type (name) VALUES
 ('Wyjście'),
 ('Nadgodziny');
 
-INSERT INTO project (code, name, date_from, date_to, hours_predicted) VALUES
-('1234', 'Aplikacja X', '2023-10-01', '2024-12-31', 2000),
-('0000', 'Wewnętrzne', NULL, NULL, NULL);
+INSERT INTO project (code, name, date_from, date_to, hours_predicted, max_hours) VALUES
+('1234', 'Aplikacja X', '2023-10-01', '2024-12-31', 2000, NULL),
+('0000', 'Wewnętrzne', NULL, NULL, NULL, NULL);
 
-INSERT INTO subproject (name, date_from, date_to, subproject_type_id, project_id, hours_predicted, code) VALUES
-('Rozwój', '2023-10-01', '2024-12-31', 3, 1, 1000, '1234_03'),
-('Wsparcie', '2023-10-01', '2024-12-31', 6, 1, 1000, '1234_06'),
-('L4', NULL, NULL, 1, 2, NULL, '0000_01'),
-('Urlopy', NULL, NULL, 4, 2, NULL, '0000_04'),
-('Prace wewnętrzne', NULL, NULL, 5, 2, NULL, '0000_05'),
-('Wyjścia', NULL, NULL, 7, 2, NULL, '0000_07'),
-('Nadgodziny', NULL, NULL, 8, 2, NULL, '0000_08');
+INSERT INTO subproject (name, date_from, date_to, subproject_type_id, project_id, hours_predicted, code, max_hours) VALUES
+('Rozwój', '2023-10-01', '2024-12-31', 3, 1, 1000, '1234_03', NULL),
+('Wsparcie', '2023-10-01', '2024-12-31', 6, 1, 1000, '1234_06', NULL),
+('L4', NULL, NULL, 1, 2, NULL, '0000_01', NULL),
+('Urlopy', NULL, NULL, 4, 2, NULL, '0000_04', NULL),
+('Prace wewnętrzne', NULL, NULL, 5, 2, NULL, '0000_05', NULL),
+('Wyjścia', NULL, NULL, 7, 2, NULL, '0000_07', NULL),
+('Nadgodziny', NULL, NULL, 8, 2, NULL, '0000_08', NULL);
 
-INSERT INTO task (name, from_date, to_date, subproject_id, hours_predicted) VALUES
-('Back-end', '2023-10-01', '2024-12-31', 1, 300),
-('Front-end', '2023-10-01', '2024-12-31', 1, 350),
-('Projekt graficzny', '2023-10-01', '2024-12-31', 1, 350),
-('Naprawa błędów', '2023-10-01', '2024-12-31', 2, 330),
-('Nowe funkcjonalności', '2023-10-01', '2024-12-31', 2, 335),
-('Spotkania z klientem', '2023-10-01', '2024-12-31', 2, 335),
-('L4', NULL, NULL, 3, NULL),
-('Urlopy', NULL, NULL, 4, NULL),
-('Prace wewnętrzne', NULL, NULL, 5, NULL),
-('Wyjścia', NULL, NULL, 6, NULL),
-('Nadgodziny', NULL, NULL, 7, NULL);
+INSERT INTO task (name, from_date, to_date, subproject_id, hours_predicted, max_hours) VALUES
+('Back-end', '2023-10-01', '2024-12-31', 1, 300, NULL),
+('Front-end', '2023-10-01', '2024-12-31', 1, 350, NULL),
+('Projekt graficzny', '2023-10-01', '2024-12-31', 1, 350, NULL),
+('Naprawa błędów', '2023-10-01', '2024-12-31', 2, 330, NULL),
+('Nowe funkcjonalności', '2023-10-01', '2024-12-31', 2, 335, NULL),
+('Spotkania z klientem', '2023-10-01', '2024-12-31', 2, 335, NULL),
+('L4', NULL, NULL, 3, NULL, NULL),
+('Urlopy', NULL, NULL, 4, NULL, NULL),
+('Prace wewnętrzne', NULL, NULL, 5, NULL, NULL),
+('Wyjścia', NULL, NULL, 6, NULL, NULL),
+('Nadgodziny', NULL, NULL, 7, NULL, NULL);
 
 INSERT INTO task_report (status, description, date, hours, task_id, user_id) VALUES
 (false, '', '2023-11-13', 8.0, 1, 1),

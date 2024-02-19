@@ -23,13 +23,28 @@ CREATE TABLE user_authority (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE department (
+    id bigserial PRIMARY KEY,
+    name varchar(255) NOT NULL
+);
+
+CREATE TABLE user_department (
+    user_id bigint NOT NULL,
+    department_id bigint NOT NULL,
+    supervisor boolean DEFAULT false NOT null,
+    PRIMARY KEY (user_id, department_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (department_id) REFERENCES department(id)
+);
+
 CREATE TABLE project (
     id bigserial PRIMARY KEY,
     code varchar(255) NOT NULL,
     name varchar(255) NOT NULL,
     date_from date NULL,
     date_to date NULL,
-    hours_predicted int NULL
+    hours_predicted int NULL,
+    max_hours int NULL
 );
 
 CREATE TABLE subproject_type (
@@ -46,6 +61,7 @@ CREATE TABLE subproject (
     project_id bigint NULL,
     hours_predicted int NULL,
     code varchar(255) NOT NULL,
+    max_hours int NULL,
     FOREIGN KEY (project_id) REFERENCES project(id),
     FOREIGN KEY (subproject_type_id) REFERENCES subproject_type(id)
 );
@@ -57,6 +73,7 @@ CREATE TABLE task (
     to_date date NULL,
     subproject_id bigint NULL,
     hours_predicted int NULL,
+    max_hours int NULL,
     FOREIGN KEY (subproject_id) REFERENCES subproject(id)
 );
 
