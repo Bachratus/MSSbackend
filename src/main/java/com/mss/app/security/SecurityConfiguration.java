@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,12 +20,9 @@ public class SecurityConfiguration {
 
     private final AuthenticationConfiguration authenticationConfiguration;
 
-    private final CustomUserDetailsService customUserDetailsService;
-
     public SecurityConfiguration(AuthenticationConfiguration authenticationConfiguration,
             CustomUserDetailsService customUserDetailsService) {
         this.authenticationConfiguration = authenticationConfiguration;
-        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
@@ -78,22 +74,12 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
-        auth.userDetailsService(customUserDetailsService)
-                .passwordEncoder(passwordEncoder());
-
         return http.build();
     }
 
     @Bean
     public JwtRequestFilter jwtRequestFilter() {
         return new JwtRequestFilter();
-    }
-
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .userDetailsService(customUserDetailsService)
-                .passwordEncoder(passwordEncoder());
     }
 
     @Bean
