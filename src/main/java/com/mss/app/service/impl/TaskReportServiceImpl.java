@@ -12,12 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.mss.app.domain.DefaultTask;
+import com.mss.app.domain.SubprojectType;
 import com.mss.app.domain.Task;
 import com.mss.app.domain.TaskReport;
 import com.mss.app.domain.User;
 import com.mss.app.domain.keys.UserTaskKey;
 import com.mss.app.error.BadRequestAlertException;
 import com.mss.app.repository.DefaultTaskRepository;
+import com.mss.app.repository.SubprojectTypeRepository;
 import com.mss.app.repository.TaskReportRepository;
 import com.mss.app.repository.TaskRepository;
 import com.mss.app.repository.UserRepository;
@@ -50,19 +52,23 @@ public class TaskReportServiceImpl implements TaskReportService {
 
     private final TaskService taskService;
 
+    private final SubprojectTypeRepository subprojectTypeRepository;
+
     public TaskReportServiceImpl(
             TaskReportRepository taskReportRepository,
             DefaultTaskRepository defaultTaskRepository,
             UserRepository userRepository,
             TaskReportMapper taskReportMapper,
             TaskRepository taskRepository,
-            TaskService taskService) {
+            TaskService taskService,
+            SubprojectTypeRepository subprojectTypeRepository) {
         this.taskReportRepository = taskReportRepository;
         this.defaultTaskRepository = defaultTaskRepository;
         this.userRepository = userRepository;
         this.taskReportMapper = taskReportMapper;
         this.taskService = taskService;
         this.taskRepository = taskRepository;
+        this.subprojectTypeRepository = subprojectTypeRepository;
     }
 
     @Override
@@ -162,8 +168,7 @@ public class TaskReportServiceImpl implements TaskReportService {
             weeklySummary.setName(user.getFirstName());
             weeklySummary.setSurname(user.getLastName());
 
-            Double totalHours = reports.stream().filter(report -> report.getType() != 7
-                    && report.getType() != 8)
+            Double totalHours = reports.stream().filter(report -> !this.isOvertimeOrExitReport(report))
                     .mapToDouble(report -> report.getHours()).sum();
             weeklySummary.setHours(totalHours);
 
@@ -171,6 +176,16 @@ public class TaskReportServiceImpl implements TaskReportService {
         }
 
         return weeklySummaries;
+    }
+
+    private boolean isOvertimeOrExitReport(TaskReportDTO taskReport) {
+        SubprojectType overtimeSubprojectType = this.subprojectTypeRepository.getOvertimeSubprojectType().orElse(null);
+        SubprojectType exitSubprojectType = this.subprojectTypeRepository.getExitsSubprojectType().orElse(null);
+        if ((overtimeSubprojectType != null && taskReport.getType() == overtimeSubprojectType.getId())
+                || (exitSubprojectType != null && taskReport.getType() == exitSubprojectType.getId())) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -397,17 +412,17 @@ public class TaskReportServiceImpl implements TaskReportService {
 
     public byte[] getCSVForUser(LocalDate fromDate, LocalDate toDate) {
         List<UserReportDTO> userReports = this.getMonthlyUserReport(fromDate, toDate);
-    
+
         StringBuilder csvBuilder = new StringBuilder();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    
+
         csvBuilder.append("data;godziny;\n");
-    
+
         for (UserReportDTO report : userReports) {
             String formattedDate = report.getDate().format(formatter);
             csvBuilder.append(formattedDate).append(";").append(report.getHours()).append(";\n");
         }
-    
+
         return csvBuilder.toString().getBytes();
     }
 }
