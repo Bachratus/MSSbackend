@@ -15,6 +15,8 @@ public final class AuthoritiesConstants {
 
     public static final String USERS_ADMINISTRATION = "USERS_ADM";
 
+    public static final String PROJECTS_ADMINISTRATION = "PROJECTS_ADM";
+
     private AuthoritiesConstants() {
     }
 }

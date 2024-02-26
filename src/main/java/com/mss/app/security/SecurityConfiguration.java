@@ -56,19 +56,35 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/users/**")
                         .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.USERS_ADMINISTRATION)
 
-                        .requestMatchers("api/tasks/**")
+                        .requestMatchers("/api/projects/**")
+                        .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.PROJECTS_ADMINISTRATION)
+
+                        .requestMatchers("/api/projects/**")
+                        .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.PROJECTS_ADMINISTRATION)
+
+                        .requestMatchers(HttpMethod.POST, "api/tasks/**")
                         .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
 
-                        .requestMatchers(HttpMethod.GET, "api/task-reports/weekly/**")
+                        .requestMatchers(HttpMethod.PUT, "api/tasks/**")
                         .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
 
-                        .requestMatchers(HttpMethod.POST, "api/task-reports/**")
+                        .requestMatchers(HttpMethod.DELETE, "api/tasks/**")
                         .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
 
-                        .requestMatchers(HttpMethod.PUT, "api/task-reports/**")
+                        .requestMatchers(HttpMethod.GET, "api/tasks/**")
+                        .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS,
+                                AuthoritiesConstants.PROJECTS_ADMINISTRATION)
+
+                        .requestMatchers(HttpMethod.GET, "/api/task-reports/weekly/**")
                         .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
 
-                        .requestMatchers(HttpMethod.DELETE, "api/task-reports/**")
+                        .requestMatchers(HttpMethod.POST, "/api/task-reports/**")
+                        .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
+
+                        .requestMatchers(HttpMethod.PUT, "/api/task-reports/**")
+                        .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/task-reports/**")
                         .hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.WEEKLY_REPORTS)
 
                         .anyRequest().authenticated())
