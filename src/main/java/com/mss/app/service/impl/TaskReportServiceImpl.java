@@ -425,4 +425,26 @@ public class TaskReportServiceImpl implements TaskReportService {
 
         return csvBuilder.toString().getBytes();
     }
+
+    @Override
+    public TaskReportDTO addReport(TaskReportDTO dto) {
+        if (dto.getTaskId() == null) {
+            throw new BadRequestAlertException("No task id provided", "", "noidprovided");
+        }
+        if (dto.getUserId() == null) {
+            User user = SecurityUtil
+                    .getCurrentUserLogin()
+                    .flatMap(userRepository::findOneByLogin).get();
+            Task task = taskRepository.findById(dto.getTaskId()).get();
+            dto.setUserId(user.getId());
+            dto.setTaskId(task.getId());
+            dto.setStatus(false);
+
+            TaskReport newReport = taskReportMapper.toEntity(dto);
+
+            return taskReportMapper.toDto(taskReportRepository.save(newReport));
+        } else {
+            return null;
+        }
+    }
 }

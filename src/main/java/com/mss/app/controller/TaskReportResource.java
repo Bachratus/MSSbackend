@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mss.app.domain.User;
 import com.mss.app.service.TaskReportService;
 import com.mss.app.service.UserService;
+import com.mss.app.service.dto.TaskReportDTO;
 import com.mss.app.service.dto.UserReportDTO;
 import com.mss.app.service.dto.weekly_report_dtos.WeeklySummaryDTO;
 import com.mss.app.service.dto.weekly_report_dtos.WeeklyTaskReportDTO;
@@ -102,6 +103,11 @@ public class TaskReportResource {
         WeeklyTaskReportDTO result = this.taskReportService.addDefaultTaskAndGetEmptyReport(userId, taskId,
                 fromDate, toDate);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/task-reports")
+    public ResponseEntity<TaskReportDTO> addReport(@RequestBody TaskReportDTO dto) throws URISyntaxException {
+        return ResponseEntity.ok(taskReportService.addReport(dto));
     }
 
     @DeleteMapping("/task-reports/delete-weekly-report/{userId}")

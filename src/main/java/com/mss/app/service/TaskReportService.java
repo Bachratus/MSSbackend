@@ -11,6 +11,8 @@ import com.mss.app.service.dto.weekly_report_dtos.WeeklyTaskReportDTO;
 
 public interface TaskReportService {
 
+    TaskReportDTO addReport(TaskReportDTO dto);
+
     List<TaskReportDTO> findAllByDatesForUser(LocalDate fromDate, LocalDate toDate, Long userId);
 
     WeeklyTaskReportDTO getEmptyWeeklyReportForTask(Long taskId, LocalDate fromDate, LocalDate toDate);

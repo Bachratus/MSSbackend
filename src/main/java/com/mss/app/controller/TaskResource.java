@@ -9,9 +9,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.mss.app.domain.DefaultTask;
 import com.mss.app.domain.Task;
+import com.mss.app.domain.User;
 import com.mss.app.error.BadRequestAlertException;
+import com.mss.app.repository.DefaultTaskRepository;
 import com.mss.app.repository.TaskRepository;
+import com.mss.app.repository.UserRepository;
+import com.mss.app.security.SecurityUtil;
 import com.mss.app.service.dto.TaskDTO;
 import com.mss.app.service.mapper.TaskMapper;
 
@@ -31,10 +36,30 @@ public class TaskResource {
 
     private final TaskMapper taskMapper;
 
+    private final UserRepository userRepository;
+
+    private final DefaultTaskRepository defaultTaskRepository;
+
     public TaskResource(TaskRepository taskRepository,
-            TaskMapper taskMapper) {
+            TaskMapper taskMapper,
+            UserRepository userRepository,
+            DefaultTaskRepository defaultTaskRepository) {
         this.taskRepository = taskRepository;
         this.taskMapper = taskMapper;
+        this.userRepository = userRepository;
+        this.defaultTaskRepository = defaultTaskRepository;
+    }
+
+    @GetMapping("/tasks/for-user")
+    public List<TaskDTO> getTaskAssignedToUser() {
+        User user = SecurityUtil
+                .getCurrentUserLogin()
+                .flatMap(userRepository::findOneByLogin).get();
+        List<DefaultTask> defaultTasksForUser = defaultTaskRepository.findAllByUserId(user.getId());
+        List<TaskDTO> tasksAssigned = defaultTasksForUser.stream()
+                .map(def -> taskMapper.toDto(taskRepository.findById(def.getTask().getId()).get()))
+                .collect(Collectors.toList());
+        return tasksAssigned;
     }
 
     @GetMapping("/tasks")
