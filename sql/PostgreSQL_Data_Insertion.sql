@@ -3,7 +3,8 @@ INSERT INTO authority (name, description) VALUES
 ('ROLE_USER', 'Użytkownik'),
 ('USERS_ADM', 'Zarządzanie użytkownikami'),
 ('WEEKLY_REP', 'Tygodniowe raporty'),
-('PROJECTS_ADM' , 'Zarządzanie projektami');
+('PROJECTS_ADM' , 'Zarządzanie projektami'),
+('PROJECTS_ADM', 'Administracja projektami');
 
 INSERT INTO users (login, email, password_hash, first_name, last_name, active) VALUES
 ('admin', 'admin@localhost', '$2a$10$r9Qn2rkN.oMpnoPiWUfyVOke4duL5IpbbAPhgidvlpUhPObeznVy.', 'Administrator', 'Administrator', true),
