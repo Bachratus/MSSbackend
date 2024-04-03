@@ -495,7 +495,7 @@ public class TaskReportServiceImpl implements TaskReportService {
             if (hours > 0) {
                 return 6;
             } else {
-                return 3;
+                return 7;
             }
         } else if (isFutureWorkdayWithZeroHours) {
             return 3;
