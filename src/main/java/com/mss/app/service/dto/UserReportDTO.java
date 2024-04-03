@@ -6,6 +6,15 @@ import java.time.LocalDate;
 public class UserReportDTO implements Serializable {
     private LocalDate date;
     private Double hours;
+    private Integer status;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
 
     public LocalDate getDate() {
         return date;
