@@ -17,6 +17,7 @@ import com.mss.app.domain.Task;
 import com.mss.app.domain.TaskReport;
 import com.mss.app.domain.User;
 import com.mss.app.domain.keys.UserTaskKey;
+import com.mss.app.enums.WorkDayStatus;
 import com.mss.app.error.BadRequestAlertException;
 import com.mss.app.repository.DefaultTaskRepository;
 import com.mss.app.repository.SubprojectTypeRepository;
@@ -130,7 +131,7 @@ public class TaskReportServiceImpl implements TaskReportService {
         double stdDeviation = Math.sqrt(variance);
         for (UserReportDTO report : preparedReports) {
             double hours = report.getHours();
-            int status = getStatus(hours, average, stdDeviation, report.getDate());
+            int status = getStatus(hours, average, stdDeviation, report.getDate()).getValue();
             report.setStatus(status);
         }
 
@@ -475,14 +476,14 @@ public class TaskReportServiceImpl implements TaskReportService {
         for (UserReportDTO report : userReports) {
             String formattedDate = report.getDate().format(formatter);
             double hours = report.getHours();
-            int status = getStatus(hours, average, stdDeviation, report.getDate());
+            String status = getStatus(hours, average, stdDeviation, report.getDate()).getDescription();
             csvBuilder.append(formattedDate).append(";").append(hours).append(";").append(status).append("\n");
         }
 
         return csvBuilder.toString().getBytes();
     }
 
-    private int getStatus(double hours, double average, double stdDeviation, LocalDate date) {
+    private WorkDayStatus getStatus(double hours, double average, double stdDeviation, LocalDate date) {
         boolean isFreeDay = FreeDays.isDayFreeOfWork(date, true);
         LocalDate today = LocalDate.now();
         boolean isFutureWorkdayWithZeroHours = !isFreeDay && date.isAfter(today) && hours == 0;
@@ -493,23 +494,23 @@ public class TaskReportServiceImpl implements TaskReportService {
 
         if (isFreeDay) {
             if (hours > 0) {
-                return 6;
+                return WorkDayStatus.OVERTIME_ON_DAY_OFF;
             } else {
-                return 7;
+                return WorkDayStatus.NO_WORK_ON_DAY_OFF;
             }
         } else if (isFutureWorkdayWithZeroHours) {
-            return 3;
+            return WorkDayStatus.AVERAGE_HOURS;
         } else {
             if (hours < veryLowHoursThreshold) {
-                return 1;
+                return WorkDayStatus.VERY_LOW_HOURS;
             } else if (hours < slightlyLessHoursThreshold) {
-                return 2;
+                return WorkDayStatus.LOW_HOURS;
             } else if (hours >= slightlyLessHoursThreshold && hours <= slightOvertimeThreshold) {
-                return 3;
+                return WorkDayStatus.AVERAGE_HOURS;
             } else if (hours > slightOvertimeThreshold && hours <= lotsOfOvertimeThreshold) {
-                return 4;
+                return WorkDayStatus.HIGH_HOURS;
             } else {
-                return 5;
+                return WorkDayStatus.VERY_HIGH_HOURS;
             }
         }
     }
