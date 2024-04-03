@@ -109,13 +109,19 @@ public class TaskReportServiceImpl implements TaskReportService {
         if (!today.isBefore(fromDate) && !today.isAfter(toDate)) {
             List<UserReportDTO> userReportsUntilToday = preparedReports.stream()
                     .filter(report -> !report.getDate().isAfter(today))
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
                     .collect(Collectors.toList());
+
             average = userReportsUntilToday.stream()
                     .mapToDouble(UserReportDTO::getHours)
                     .average()
                     .orElse(0);
         } else {
-            average = preparedReports.stream().mapToDouble(UserReportDTO::getHours).average().orElse(0);
+            average = preparedReports.stream()
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
+                    .mapToDouble(UserReportDTO::getHours)
+                    .average()
+                    .orElse(0);
         }
 
         double variance = preparedReports.stream().mapToDouble(report -> Math.pow(report.getHours() - average, 2))
@@ -442,13 +448,19 @@ public class TaskReportServiceImpl implements TaskReportService {
         if (!today.isBefore(fromDate) && !today.isAfter(toDate)) {
             List<UserReportDTO> userReportsUntilToday = userReports.stream()
                     .filter(report -> !report.getDate().isAfter(today))
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
                     .collect(Collectors.toList());
+
             average = userReportsUntilToday.stream()
                     .mapToDouble(UserReportDTO::getHours)
                     .average()
                     .orElse(0);
         } else {
-            average = userReports.stream().mapToDouble(UserReportDTO::getHours).average().orElse(0);
+            average = userReports.stream()
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
+                    .mapToDouble(UserReportDTO::getHours)
+                    .average()
+                    .orElse(0);
         }
 
         double variance = userReports.stream().mapToDouble(report -> Math.pow(report.getHours() - average, 2)).average()
