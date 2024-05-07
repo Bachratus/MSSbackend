@@ -17,6 +17,7 @@ import com.mss.app.domain.Task;
 import com.mss.app.domain.TaskReport;
 import com.mss.app.domain.User;
 import com.mss.app.domain.keys.UserTaskKey;
+import com.mss.app.enums.WorkDayStatus;
 import com.mss.app.error.BadRequestAlertException;
 import com.mss.app.repository.DefaultTaskRepository;
 import com.mss.app.repository.SubprojectTypeRepository;
@@ -32,6 +33,7 @@ import com.mss.app.service.dto.weekly_report_dtos.DailyReportDTO;
 import com.mss.app.service.dto.weekly_report_dtos.WeeklySummaryDTO;
 import com.mss.app.service.dto.weekly_report_dtos.WeeklyTaskReportDTO;
 import com.mss.app.service.mapper.TaskReportMapper;
+import com.mss.app.tools.FreeDays;
 
 import jakarta.transaction.Transactional;
 
@@ -101,6 +103,36 @@ public class TaskReportServiceImpl implements TaskReportService {
             preparedReport.setDate(date);
             preparedReport.setHours(summedHours);
             preparedReports.add(preparedReport);
+        }
+
+        LocalDate today = LocalDate.now();
+        double average;
+        if (!today.isBefore(fromDate) && !today.isAfter(toDate)) {
+            List<UserReportDTO> userReportsUntilToday = preparedReports.stream()
+                    .filter(report -> !report.getDate().isAfter(today))
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
+                    .collect(Collectors.toList());
+
+            average = userReportsUntilToday.stream()
+                    .mapToDouble(UserReportDTO::getHours)
+                    .average()
+                    .orElse(0);
+        } else {
+            average = preparedReports.stream()
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
+                    .mapToDouble(UserReportDTO::getHours)
+                    .average()
+                    .orElse(0);
+        }
+
+        double variance = preparedReports.stream().mapToDouble(report -> Math.pow(report.getHours() - average, 2))
+                .average()
+                .orElse(0);
+        double stdDeviation = Math.sqrt(variance);
+        for (UserReportDTO report : preparedReports) {
+            double hours = report.getHours();
+            int status = getStatus(hours, average, stdDeviation, report.getDate()).getValue();
+            report.setStatus(status);
         }
 
         return preparedReports;
@@ -412,18 +444,75 @@ public class TaskReportServiceImpl implements TaskReportService {
 
     public byte[] getCSVForUser(LocalDate fromDate, LocalDate toDate) {
         List<UserReportDTO> userReports = this.getMonthlyUserReport(fromDate, toDate);
+        LocalDate today = LocalDate.now();
+        double average;
+        if (!today.isBefore(fromDate) && !today.isAfter(toDate)) {
+            List<UserReportDTO> userReportsUntilToday = userReports.stream()
+                    .filter(report -> !report.getDate().isAfter(today))
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
+                    .collect(Collectors.toList());
+
+            average = userReportsUntilToday.stream()
+                    .mapToDouble(UserReportDTO::getHours)
+                    .average()
+                    .orElse(0);
+        } else {
+            average = userReports.stream()
+                    .filter(report -> !(FreeDays.isDayFreeOfWork(report.getDate(), true) && report.getHours() == 0))
+                    .mapToDouble(UserReportDTO::getHours)
+                    .average()
+                    .orElse(0);
+        }
+
+        double variance = userReports.stream().mapToDouble(report -> Math.pow(report.getHours() - average, 2)).average()
+                .orElse(0);
+        double stdDeviation = Math.sqrt(variance);
 
         StringBuilder csvBuilder = new StringBuilder();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        csvBuilder.append("data;godziny;\n");
+        csvBuilder.append("Data;Godziny;Status\n");
 
         for (UserReportDTO report : userReports) {
             String formattedDate = report.getDate().format(formatter);
-            csvBuilder.append(formattedDate).append(";").append(report.getHours()).append(";\n");
+            double hours = report.getHours();
+            String status = getStatus(hours, average, stdDeviation, report.getDate()).getDescription();
+            csvBuilder.append(formattedDate).append(";").append(hours).append(";").append(status).append("\n");
         }
 
         return csvBuilder.toString().getBytes();
+    }
+
+    private WorkDayStatus getStatus(double hours, double average, double stdDeviation, LocalDate date) {
+        boolean isFreeDay = FreeDays.isDayFreeOfWork(date, true);
+        LocalDate today = LocalDate.now();
+        boolean isFutureWorkdayWithZeroHours = !isFreeDay && date.isAfter(today) && hours == 0;
+        double veryLowHoursThreshold = 0.5 * average;
+        double slightlyLessHoursThreshold = 0.8 * average;
+        double slightOvertimeThreshold = 1.2 * average;
+        double lotsOfOvertimeThreshold = 1.5 * average;
+
+        if (isFreeDay) {
+            if (hours > 0) {
+                return WorkDayStatus.OVERTIME_ON_DAY_OFF;
+            } else {
+                return WorkDayStatus.NO_WORK_ON_DAY_OFF;
+            }
+        } else if (isFutureWorkdayWithZeroHours) {
+            return WorkDayStatus.AVERAGE_HOURS;
+        } else {
+            if (hours < veryLowHoursThreshold) {
+                return WorkDayStatus.VERY_LOW_HOURS;
+            } else if (hours < slightlyLessHoursThreshold) {
+                return WorkDayStatus.LOW_HOURS;
+            } else if (hours >= slightlyLessHoursThreshold && hours <= slightOvertimeThreshold) {
+                return WorkDayStatus.AVERAGE_HOURS;
+            } else if (hours > slightOvertimeThreshold && hours <= lotsOfOvertimeThreshold) {
+                return WorkDayStatus.HIGH_HOURS;
+            } else {
+                return WorkDayStatus.VERY_HIGH_HOURS;
+            }
+        }
     }
 
     @Override
